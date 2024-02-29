@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Leaflet Exercise</title>
+    <meta charset="utf-8" />
+
+    <!-- Leaflet styles and code. Place in the <head></head> element. -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js"></script>
+
+    <!-- jQuery is a library that simplifies many things in JavaScript. 
+	   We'll use it to retrieve data from the web. -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+    <script src="./p5.min.js"></script>
+    <!-- this should be unnecessary in this code, as we aren't using p5.js...
+       but since I'm showing you the code running in the p5 editor,
+       the editor expects p5.js to be here...
+       otherwise, it gives you a "TypeError: window.p5 is undefined".
+       We won't use any of p5.js's commands, though! -->
+  </head>
+  <body>
+    <div id="mapid" style="width: 600px; height: 500px;"></div>
+    <!-- Our web map will get placed into this div element -->
+
+    <script>
+
+        // Make a Leaflet map with L.map().
+        // Store the map in the variable 'map'.
+        // "mapid" is the 'id' of the DOM element to contain the map.
+        var map = L.map('mapid',
+                        {center: [49.25809243905502, -123.22541230112685],
+          				zoom: 13}  // this object holds map options
+                        );
+
+        var topoTiles = L.tileLayer(
+          	'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+            {maxZoom: 24,
+      		attribution: 'Basemap data: &copy; <a         href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, <a href="http://viewfinderpanoramas.org">SRTM</a> | Basemap style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+      		}
+      	).addTo(map);
+
+        function onEachRoad(feature, layer) {
+          // Check if the road has a property named NAME
+          let tooltipContent = '';
+          if (feature.properties && feature.properties.NAME) {
+            tooltipContent += '<b>Name:</b> ' + feature.properties.NAME +               '<br>';
+          }
+
+          // Check if the road has a property named RD_CLASS
+          if (feature.properties && feature.properties.RD_CLASS) {
+            tooltipContent += '<b>Class:</b> ' +                                         feature.properties.RD_CLASS;
+          }
+
+          // Bind the tooltip to the layer
+          if (tooltipContent !== '') {
+            layer.bindTooltip(tooltipContent);
+          }
+        }
+
+        // Define a style object for the road lines
+        var roadStyle = {
+          "color": "red", // Set the color to black
+          "weight": 2 // Set the weight to 2px
+        };
+        $.getJSON("https://raw.githubusercontent.com/UBCGeodata/ubc-geospatial-opendata/master/ubcv/transportation/geojson/ubcv_roads_simple.geojson",
+        function(data){
+          L.geoJSON(data, {
+            style: roadStyle,
+            onEachFeature: onEachRoad
+          }).addTo(map) 
+        });
+    </script>
+  </body>
+</html>
