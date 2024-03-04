@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Display a map with a custom style</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
+<style>
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+.map-overlay {
+    position: absolute;
+    bottom: 35px;
+    left: 10px;
+    background-color: #fafafa;
+    padding: 10px;
+    border-radius: 3px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.legend-item {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+/* Circle Symbol */
+.legend-item .legend-color.circle {
+    width: 15px; /* Adjust size as needed */
+    height: 15px; /* Adjust size as needed */
+    border-radius: 50%; /* Makes the box round (circle) */
+    background-color: #3366ff; /* Change the color */
+    margin-right: 10px;
+}
+
+/* Line Symbol */
+.legend-item .legend-color.line {
+    width: 20px; /* Adjust size as needed */
+    height: 2px; /* Adjust thickness */
+    background-color: #3366ff; /* Change the color */
+}
+
+.legend-color {
+    width: 20px;
+    height: 10px;
+    margin-right: 5px;
+}
+
+.legend-text {
+    font-size: 15px;
+    font-family: 'Din Pro Regular', sans-serif;
+    color: #8d8d8d;
+    text-shadow: -0.5px -0.5px 0 #e8e8e8 ,  
+                  0.5px -0.5px 0 #e8e8e8 ,
+                 -0.5px 0.5px 0 #e8e8e8 ,
+                  0.5px 0.5px 0 #e8e8e8 ;
+}
+
+.map-title {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 10px;
+    background-color: #fafafa;
+    border-radius: 3px;
+    font-size: 20px;
+    font-weight: bold;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    font-family: 'Din Pro Regular', sans-serif;
+    color: #8d8d8d;
+    text-shadow: -0.5px -0.5px 0 #e8e8e8 ,  
+                  0.5px -0.5px 0 #e8e8e8 ,
+                 -0.5px 0.5px 0 #e8e8e8 ,
+                  0.5px 0.5px 0 #e8e8e8 ;
+}
+
+.map-subtitle {
+    font-size: 14px;
+    font-style: italic;
+    font-family: 'Din Pro Regular', sans-serif;
+    color: #8d8d8d;
+    text-shadow: -0.5px -0.5px 0 #e8e8e8 ,  
+                  0.5px -0.5px 0 #e8e8e8 ,
+                 -0.5px 0.5px 0 #e8e8e8 ,
+                  0.5px 0.5px 0 #e8e8e8 ;}
+
+.toggleable-layer {
+    position: absolute;
+    bottom: 150px;
+    left: 10px;
+    background-color: #fafafa;
+    padding: 10px;
+    padding-right: 14px;
+    border-radius: 3px;
+    font-size: 14px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    font-family: 'Din Pro Regular', sans-serif;
+    color: #8d8d8d;
+    text-shadow: -0.5px -0.5px 0 #e8e8e8 ,  
+                  0.5px -0.5px 0 #e8e8e8 ,
+                 -0.5px 0.5px 0 #e8e8e8 ,
+                  0.5px 0.5px 0 #e8e8e8 ;
+}
+
+.zoning-legend {
+    position: absolute;
+    bottom: 193px;
+    left: 10px;
+    background-color: #fafafa;
+    padding-left: 15px;
+    padding-right: 11px;
+    padding-bottom: 3px;
+    padding-top: 5px;
+    border-radius: 3px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div class="toggleable-layer">
+    <input type="checkbox" id="layer-toggle">
+    <label for="layer-toggle" style="margin-left: 10px;">Vancouver Zoning</label>
+</div>
+
+<div id="zoning-classes" class="zoning-legend" style="display: none;">
+    <div class="legend-item">
+        <div class="legend-color" style="background-color: #d6d6d6;"></div>
+        <div class="legend-text" style="margin-left: 15px;">Comprehensive<br>Development</div>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color" style="background-color: #b5bee2;"></div>
+        <div class="legend-text" style="margin-left: 15px;">Commercial</div>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color" style="background-color: #e2d8e6;"></div>
+        <div class="legend-text" style="margin-left: 15px;">Industrial</div>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color" style="background-color: #d4e7d0;"></div>
+        <div class="legend-text" style="margin-left: 15px;">Limited<br>Agriculture</div>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color" style="background-color: #fbcec2;"></div>
+        <div class="legend-text" style="margin-left: 15px;">Residential</div>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color" style="background-color: #fff6d6;"></div>
+        <div class="legend-text" style="margin-left: 15px;">Residential<br>Inclusive</div>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color" style="background-color: #fbbcbc;"></div>
+        <div class="legend-text" style="margin-left: 15px;">Residential<br>Rental</div>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color" style="background-color: #d0ebf0;"></div>
+        <div class="legend-text" style="margin-left: 15px;">Historical<br>Area</div>
+    </div>
+</div>
+
+<div class="map-title">Street Trees in the City of Vancouver</div>
+
+<div class="map-title">
+    <div>Street Trees in the City of Vancouver</div>
+    <div class="map-subtitle">An Examination of Native and Non-native <br> Tree Population Distributions within the City</div>
+</div>
+
+<div id="legend" class="map-overlay">
+    <div class="legend-item">
+        <div class="legend-color circle" style="background-color: #34751d;"></div>
+        <div class="legend-text">Native Trees</div>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color circle" style="background-color: #fbce8f;"></div>
+        <div class="legend-text">Non-native Trees</div>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color line" style="background-color: black;"></div>
+        <div class="legend-text">Snow Plow Routes</div>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color" style="background-color: #cce5c2;"></div>
+        <div class="legend-text">Vancouver Parks</div>
+    </div>
+</div>
+
+<script>
+	mapboxgl.accessToken = 'pk.eyJ1IjoiYW5kcmV3c2h5IiwiYSI6ImNsc2t0endnNzAzaGUybHA1MnNzYTVzYzUifQ.InpgZUzrtVhTws414cM9Ng';
+    const map = new mapboxgl.Map({
+        container: 'map', // container ID
+        style: 'mapbox://styles/andrewshy/clskubkmr00lv01puf0fo1apo', // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
+        center: [-123.12, 49.25], // starting position
+        zoom: 13 // starting zoom
+    });
+
+    map.on('load', () => {
+        map.setLayoutProperty('zoning', 'visibility', 'none');
+
+        // Add an event listener to the checkbox
+        document.getElementById('layer-toggle').addEventListener('change', function() {
+        var zoningLegend = document.getElementById('zoning-classes');
+        zoningLegend.style.display = this.checked ? 'block' : 'none';
+        var visibility = this.checked ? 'visible' : 'none';
+        map.setLayoutProperty('zoning', 'visibility', visibility);
+        });
+        
+        // Add the vector tileset as a source.
+        map.addSource('NATIVE', {
+            type: 'vector',
+            url: 'mapbox://andrewshy.aiy01b84'
+        });
+        
+        map.on('click', 'trees', function (e) {
+                var features = e.features;
+                if (!features || !features.length) {
+                    return;
+                }
+
+                var feature = features[0]; // Assuming only one feature is clicked
+                var properties = feature.properties;
+
+                // Display information about the clicked feature
+                var popup = new mapboxgl.Popup()
+                    .setLngLat(feature.geometry.coordinates)
+                    .setHTML('<h3>Tree Information</h3>' +
+                        '<p>Species: ' + properties.SCIENTIFIC_NAME + '</p>' +
+                        '<p>Common Name: ' + properties.COMMON_NAME + '</p>' +
+                        '<p>Native: ' + properties.NATIVE + '</p>' +
+                        '<p>Height: ' + 10*properties.HEIGHT_RANGE_ID + '-' + (10*properties.HEIGHT_RANGE_ID+10) + ' ft' + '</p>' +
+                        '<p>Diameter: ' + properties.DIAMETER + ' in' + '</p>' +
+                        '<p>Curbside: ' + properties.CURB + '</p>' +
+                        '<p>Neighbourhood: ' + properties.NEIGHBOURHOOD_NAME + '</p>')
+                    .addTo(map);
+            });
+
+            // Change cursor to pointer when hovering over clickable features
+            map.on('mouseenter', 'trees', function () {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+
+            // Change cursor back to default when not hovering over clickable features
+            map.on('mouseleave', 'trees', function () {
+                map.getCanvas().style.cursor = '';
+            });
+        
+        
+        map.addLayer(
+            {
+                'id': 'trees',
+                'type': 'circle',
+                'source': 'NATIVE',
+                'source-layer': 'street-trees-46f076',
+                'paint': {
+                    // Make circles larger as the user zooms from z13 to z26.
+                    'circle-radius': [ 
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        13, ['*', ['get', 'HEIGHT_RANGE_ID'], 0.5], // Base size multiplied by tree size variable at zoom level 12
+                        26, ['*', ['get', 'HEIGHT_RANGE_ID'], 3] // Base size multiplied by tree size variable at zoom level 22
+                    ],
+                        
+                        //'base': 1.75,
+                        //'stops': [
+                            //[13, 2],
+                           // [26, 200]
+                        //]
+                    // Color circles by ethnicity, using a `match` expression.
+                    'circle-color': [
+                        'match',
+                        ['get', 'NATIVE'],
+                        'N',
+                        '#fbce8f',
+                        'Y',
+                        '#34751d',
+                        /* other */ '#ccc'
+                    ]
+                    /*
+                    'circle-stroke-color': [
+                        'match',
+                        ['get', 'CURB'],
+                        'Y',
+                        '#d3d3d3', // Light Grey if the tree is on a curb
+                        'N',
+                        '#a9a9a9', // Black if the tree is away from the curb
+                    ],
+                    // Scale the stroke width based on the circle radius
+                    'circle-stroke-width': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        13, 0.1, // Base stroke width at zoom level 13
+                        26, 3 // Maximum stroke width at zoom level 26
+                    ] */
+                }
+            },
+            // Placing the polygons above this layer so that it is above the roads but below the labels
+            'admin-0-boundary'
+        );
+        map.addLayer({
+            'id': 'parks', // Unique layer ID
+            'type': 'fill',
+            'source': {
+                'type': 'vector', // Specify the source type as 'vector' for vector tileset
+                'url': 'mapbox://andrewshy.507n7d0n' // Replace 'your_tileset_id' with the ID of your tileset
+            },
+            'source-layer': 'parks-polygon-representation-a2hou8', // Name of the layer within your vector tileset
+            'paint': {
+                'fill-color': '#49a329', // Fill color of the polygons
+                'fill-opacity': 0.2 // Opacity of the polygons (0 is fully transparent, 1 is fully opaque)
+            }
+        },
+        'admin-1-boundary'
+        );
+        map.addLayer({
+            'id': 'snow-removal-routes', // Unique layer ID
+            'type': 'line', // Specify the layer type as 'line' for vector lines
+            'source': {
+                'type': 'vector', // Specify the source type as 'vector' for vector tileset
+                'url': 'mapbox://andrewshy.cojotupn' // Replace 'your_tileset_id' with the ID of your tileset
+            },
+            'source-layer': 'snow-removal-routes-5d9mnr', // Name of the layer within your vector tileset
+            'paint': {
+                'line-color': '#000000', // Color of the vector lines
+                'line-width': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    13, 1, // Base line width at zoom level 10
+                    26, 3 // Maximum line width at zoom level 18
+                ]
+            }
+        },
+        'admin-1-boundary'
+        );
+        map.addLayer({
+            'id': 'zoning', // Unique layer ID
+            'type': 'fill',
+            'source': {
+                'type': 'vector', // Specify the source type as 'vector' for vector tileset
+                'url': 'mapbox://andrewshy.c5o2mq5d' // Replace 'your_tileset_id' with the ID of your tileset
+            },
+            'source-layer': 'zoning-districts-and-labels-4mqd78', // Name of the layer within your vector tileset
+            'layout': {
+            'visibility': 'none' // Set initial visibility to 'none'
+            },
+            'paint': {
+                'fill-color': [
+                        'match',
+                        ['get', 'zoning_cla'],
+                        'Comprehensive Development',
+                        '#777777',
+                        'Commercial',
+                        '#0b27a1',
+                        'Limited Agriculture',
+                        '#70AE64',
+                        'Industrial',
+                        '#9F7DAB',
+                        'Residential',
+                        '#F25E36',
+                        'Residential Inclusive',
+                        '#FFE476',
+                        'Residential Rental',
+                        '#F22020',
+                        'Historical Area',
+                        '#65BFCD',
+                        /* other */ '#ccc'
+                    ],
+                    'fill-opacity': 0.2 // Opacity of the polygons (0 is fully transparent, 1 is fully opaque)
+            }
+        },
+        'admin-1-boundary'
+        );
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+    // Your JavaScript code goes here
+    document.getElementById('layer-toggle').addEventListener('change', function() {
+        var visibility = this.checked ? 'visible' : 'none';
+        map.setLayoutProperty('zoning', 'visibility', visibility);
+    });
+});
+
+</script>
+
+</body>
+</html>
