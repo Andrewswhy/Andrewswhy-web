@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>PLAN 501: Indigenizing Place</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
+<style>
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+.map-overlay {
+    position: absolute;
+    bottom: 35px;
+    left: 10px;
+    background-color: #fafafa;
+    padding: 10px;
+    border-radius: 3px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.legend-item {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+/* Circle Symbol */
+.legend-item .legend-color.circle {
+    width: 15px; /* Adjust size as needed */
+    height: 15px; /* Adjust size as needed */
+    border-radius: 50%; /* Makes the box round (circle) */
+    background-color: #3366ff; /* Change the color */
+    margin-right: 10px;
+}
+
+/* Line Symbol */
+.legend-item .legend-color.line {
+    width: 20px; /* Adjust size as needed */
+    height: 2px; /* Adjust thickness */
+    background-color: #3366ff; /* Change the color */
+}
+
+.legend-color {
+    width: 20px;
+    height: 10px;
+    margin-right: 5px;
+}
+
+.legend-text {
+    font-size: 15px;
+    font-family: 'Din Pro Regular', sans-serif;
+    color: #8d8d8d;
+    text-shadow: -0.5px -0.5px 0 #e8e8e8 ,  
+                  0.5px -0.5px 0 #e8e8e8 ,
+                 -0.5px 0.5px 0 #e8e8e8 ,
+                  0.5px 0.5px 0 #e8e8e8 ;
+}
+
+.map-title {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 12px;
+    background-color: #fafafa;
+    border-radius: 3px;
+    font-size: 20px;
+    font-weight: bold;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    font-family: 'Din Pro Regular', sans-serif;
+    color: #8d8d8d;
+    text-shadow: -0.5px -0.5px 0 #e8e8e8 ,  
+                  0.5px -0.5px 0 #e8e8e8 ,
+                 -0.5px 0.5px 0 #e8e8e8 ,
+                  0.5px 0.5px 0 #e8e8e8 ;
+}
+
+.map-subtitle {
+    font-size: 14px;
+    font-style: italic;
+    font-family: 'Din Pro Regular', sans-serif;
+    color: #8d8d8d;
+    text-shadow: -0.5px -0.5px 0 #e8e8e8 ,  
+                  0.5px -0.5px 0 #e8e8e8 ,
+                 -0.5px 0.5px 0 #e8e8e8 ,
+                  0.5px 0.5px 0 #e8e8e8 ;}
+
+.toggleable-layer {
+    position: absolute;
+    bottom: 105px;
+    left: 10px;
+    background-color: #fafafa;
+    padding: 10px;
+    padding-right: 14px;
+    border-radius: 3px;
+    font-size: 14px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    font-family: 'Din Pro Regular', sans-serif;
+    color: #8d8d8d;
+    text-shadow: -0.5px -0.5px 0 #e8e8e8 ,  
+                  0.5px -0.5px 0 #e8e8e8 ,
+                 -0.5px 0.5px 0 #e8e8e8 ,
+                  0.5px 0.5px 0 #e8e8e8 ;
+}
+
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div class="toggleable-layer">
+    <input type="checkbox" id="layer-toggle">
+    <label for="layer-toggle" style="margin-left: 10px;">Indigenous Territories</label>
+</div>
+
+<div class="map-title">
+    <div>Indigenizing Place: Lhuḵw’lhuḵw’áyten    </div>
+    <div class="map-subtitle">Considering the Manifestation of Colonialism <br> within the Burnaby Mountain Conservation Area</div>
+</div>
+
+<div id="legend" class="map-overlay">
+    <div class="legend-item">
+        <div class="legend-color circle" style="background-color: #ff5733; border: 1px solid black;"></div>
+        <div class="legend-text">Indigenous Sites</div>
+    </div>
+    <div class="legend-item">
+        <div class="legend-color circle" style="background-color: #DAF7A6; border: 1px solid black;"></div>
+        <div class="legend-text">Personal Sites</div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYW5kcmV3c2h5IiwiYSI6ImNsc2t0endnNzAzaGUybHA1MnNzYTVzYzUifQ.InpgZUzrtVhTws414cM9Ng';
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/andrewshy/cm1fdqu5r03w101rbbobc7lia', // Test with a default style
+        center: [-122.92, 49.28],
+        zoom: 12.5
+    });
+
+    map.on('load', function() {
+        // Add the source for the native-lands layer
+        map.addSource('native-lands', {
+            'type': 'vector',
+            'url': 'mapbox://andrewshy.2xy4qzur'
+        });
+
+        // Add the lands layer, starting with visibility 'none'
+        map.addLayer({
+            'id': 'lands',
+            'type': 'fill',
+            'source': 'native-lands',
+            'source-layer': 'burnaby_lands-8tieq3',
+            'layout': {
+                'visibility': 'none' // Initially hide the layer
+            },
+            'paint': {
+                'fill-color': ['get', 'color'], // Use 'color' property from data
+                'fill-opacity': 0.15,
+                'fill-outline-color': '#000000', // Color of the vector lines
+                'fill-outline-width': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    0, 1000, // Base line width at zoom level 10
+                    13, 5000  // Maximum line width at zoom level 26
+                ]
+            },
+        });
+
+        map.addSource('place-names', {
+        'type': 'vector',
+        'url': 'mapbox://andrewshy.38dg3vdi'
+        });
+
+        map.addLayer({
+            'id': 'names',
+            'type': 'circle', // Correct type for point data
+            'source': 'place-names',
+            'source-layer': 'Indigenous_Place_Names-9m34o6',
+            'paint': {
+                'circle-color': '#ff5733', // Use 'color' property from data
+                'circle-opacity': 0.8, // Opacity for the points
+                'circle-radius': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    10, 3, // Radius at zoom level 10
+                    15, 10 // Radius at zoom level 15
+                ],
+                'circle-stroke-color': '#000000', // Outline color
+                'circle-stroke-width': 1 // Outline width
+            }
+        });
+
+        // Add click event listener for displaying point properties
+        map.on('click', 'names', function(e) {
+            const features = e.features[0]; // Get the first feature clicked
+            const coordinates = features.geometry.coordinates.slice(); // Coordinates of the point
+            const placeName = features.properties['Indigenous Place Name'] || 'Unknown'; // Using fallback if property is missing
+            const languages = features.properties['Language(s)'] || 'No additional information'; // Fallback if property is missing
+            const meaning = features.properties['Meaning'] || 'No meaning available';
+            const colName = features.properties['Colonial Name'] || 'No colonial name';
+
+        // Create and display a popup
+        new mapboxgl.Popup()
+            .setLngLat(coordinates)
+            .setHTML(`
+                <strong>Place Name:</strong> ${placeName}<br>
+                <strong>Language(s):</strong> ${languages}<br>
+                <strong>Meaning:</strong> ${meaning}<br>
+                <strong>Colonial Name:</strong> ${colName}
+            `)
+            .addTo(map);
+        });
+
+        // Change the cursor to a pointer when hovering over points
+        map.on('mouseenter', 'names', function() {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        map.on('mouseleave', 'names', function() {
+            map.getCanvas().style.cursor = '';
+        });
+
+        map.addSource('personal-sites', {
+        'type': 'vector',
+        'url': 'mapbox://andrewshy.9fnpypm6'
+        });
+
+        map.addLayer({
+            'id': 'sites',
+            'type': 'circle', // Correct type for point data
+            'source': 'personal-sites',
+            'source-layer': 'Personal_Sites-7nibx0',
+            'paint': {
+                'circle-color': '#DAF7A6', // Use 'color' property from data
+                'circle-opacity': 0.8, // Opacity for the points
+                'circle-radius': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    10, 3, // Radius at zoom level 10
+                    15, 10 // Radius at zoom level 15
+                ],
+                'circle-stroke-color': '#000000', // Outline color
+                'circle-stroke-width': 1 // Outline width
+            }
+        });
+
+        // Add click event listener for displaying point properties
+        map.on('click', 'sites', function(e) {
+            const features = e.features[0]; // Get the first feature clicked
+            const coordinates = features.geometry.coordinates.slice(); // Coordinates of the point
+            const siteName = features.properties['Name'] || 'Burnaby Mountain Conservation Area'; // Using fallback if property is missing
+            const feelings = features.properties['Feelings'] || 'No additional information'; // Fallback if property is missing
+            const histories = features.properties['Indigenous Histories'] || 'No meaning available';
+            const scene = features.properties['Scene'] || 'No 360 scene available';
+        
+        // Check if the scene is a valid URL and create a hyperlink if it is
+        const sceneLink = scene.startsWith('http') ? `<a href="${scene}" target="_blank">View 360 Scene</a>` : scene;
+
+        // Create and display a popup with a wider max width
+        new mapboxgl.Popup({ maxWidth: '600px' })
+            .setLngLat(coordinates)
+            .setHTML(`
+                <strong>Name:</strong> ${siteName}<br>
+                <strong>Feelings:</strong> ${feelings}<br>
+                <strong>Indigenous Histories:</strong> ${histories}<br>
+                <strong>360 Scene:</strong> ${sceneLink}
+            `)
+            .addTo(map);
+        });
+
+        // Change the cursor to a pointer when hovering over points
+        map.on('mouseenter', 'sites', function() {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        map.on('mouseleave', 'sites', function() {
+            map.getCanvas().style.cursor = '';
+        });
+
+
+        // Add click event listener to get polygon names at clicked point and display in popup
+        map.on('click', function(e) {
+            const features = map.queryRenderedFeatures(e.point, {
+                layers: ['lands'] // Layer to query for features
+            });
+
+            if (features.length) {
+                const names = features.map(feature => feature.properties.Name).filter(Boolean);
+
+                // Create a popup at the clicked location
+                new mapboxgl.Popup()
+                    .setLngLat(e.lngLat) // Set the popup to appear at the clicked location
+                    .setHTML(`<strong>Indigenous Territories:</strong> <br> ${names.join('<br>')}`) // Display the polygon names
+                    .addTo(map); // Add the popup to the map
+            }
+        });
+
+        // Change cursor to pointer when hovering over the fill layer
+        map.on('mouseenter', 'lands', function() {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        map.on('mouseleave', 'lands', function() {
+            map.getCanvas().style.cursor = '';
+        });
+
+        // Add event listener for the layer toggle checkbox
+        document.getElementById('layer-toggle').addEventListener('change', function() {
+            var visibility = this.checked ? 'visible' : 'none';
+            map.setLayoutProperty('lands', 'visibility', visibility);
+        });
+    });
+});
+
+</script>
+</body>
+</html>
